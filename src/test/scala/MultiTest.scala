@@ -12,33 +12,40 @@ class MultiTest extends FlatSpec with Matchers{
       val b1 = new ClassB
       val b2 = new ClassB
 
-      aa.myBs.addOther(b1)
-      b2.myAs.addOther(aa)
+      aa.myBs ++ b1
+      b2.myAs ++ aa
 
       aa.myBs.getOthers() should contain allOf(b1, b2)
       b1.myAs.getOthers() should contain only aa
       b2.myAs.getOthers() should contain only aa
 
-      b2.myAs.removeOther(aa)
+      b2.myAs -- aa
       aa.myBs.getOthers() should contain only b1
       b1.myAs.getOthers() should contain only aa
       b2.myAs.getOthers() should have size 0
     }
 
   behavior of "Hierarchy"
-    it should "have correct hierarchy" in {
+
+    it should "typecheck" in {
+      val sa = new SwaggyA
+      "val a:Multi[ClassA,ClassB]  = Multi.make[SwaggyB,ClassB](new SwaggyB,_.myAs.filter)" shouldNot typeCheck
+      "val a:Multi[ClassA,ClassB]  = Multi.make[ClassA,ClassB](new SwaggyA,_.myAs.filter)" should compile
+    }
+
+    it should "Allow other types" in {
       val aa = new ClassA
       val bb = new ClassB
       val sa = new SwaggyA
       val sb = new SwaggyB
 
-      sa.p.addOther(sb)
-      sa.p.addOther(bb)
+      sa.p ++ sb
+      sa.p ++ bb
       sa.p.getOthers() should contain only(bb,sb)
-      bb.myAs.getOthers() should contain only(sa)
-      bb.myAs.removeOther(sa)
-      bb.myAs.getOthers() should have size(0)
+      sa.p -- bb
       sa.p.getOthers() should contain only(sb)
+      sa.p -- sb
+      sa.p.getOthers() should have size(0)
 
     }
 }
