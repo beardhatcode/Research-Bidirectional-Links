@@ -8,6 +8,7 @@ abstract class Multi[+From, +To] {
   protected def addToOthers[T >: Multi[To,From]](other:T)
   def removeOther(other:Any)
   protected def removeFromOthers[T >: Multi[To,From]](other:T)
+  def filter[NewFrom,NewTo]: Multi[NewFrom,NewTo]
 }
 
 object Multi{
@@ -44,6 +45,25 @@ object Multi{
         require(other.isInstanceOf[To])
         val multi: Multi[To, From] = getMulti(other.asInstanceOf[To])
         others = others - multi
+      }
+
+      override def filter[NewFrom, NewTo]: Multi[NewFrom, NewTo] = {
+        val realMulti = this
+        new Multi[NewFrom,NewTo] {
+          override def getOthers[T >: NewTo](): Set[T] = this.getOthers().filter(_.isInstanceOf[NewTo]).asInstanceOf
+
+          override def filter[NewFrom, NewTo]: Multi[NewFrom, NewTo] = realMulti.filter[NewFrom,NewTo]
+
+          override def addOther(other: Any): Unit = realMulti.addOther(other)
+
+          override protected def removeFromOthers[T >: Multi[NewTo, NewFrom]](other: T): Unit = realMulti.removeFromOthers(other)
+
+          override def removeOther(other: Any): Unit = realMulti.removeOther(other)
+
+          override def getOwner[F >: NewFrom]: F = owner.asInstanceOf[F]
+
+          override protected def addToOthers[T >: Multi[NewTo, NewFrom]](other: T): Unit = realMulti.addToOthers(other)
+        }
       }
     }
   }
