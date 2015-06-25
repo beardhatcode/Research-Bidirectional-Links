@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[dutch]{babel}
+\usepackage{float}
+\usepackage{amsmath,amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb,marvosym}
+\usepackage[left=2cm,right=2cm,top=2.5cm,bottom=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage[toc,page]{appendix}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{chngcntr}
+
+
+
+%captions
+\usepackage[font=small,labelfont=bf]{caption}
+\captionsetup[table]{aboveskip=0.2em}
+\captionsetup[table]{belowskip=0em}
+\captionsetup[subfigure]{aboveskip=-0.5em}
+\captionsetup[subfigure]{belowskip=1em}
+\captionsetup[figure]{aboveskip=-0.8em}
+\captionsetup[figure]{belowskip=2em}
+
+%header
+\lhead {Project statistiek}
+\chead{BAZ(~ \thepage ~ )NGA}
+\rhead{Robbert Gurdeep Singh}
+\setlength{\headheight}{14.0pt}
+\cfoot{} % get rid of the page number
+
+
+\title{Decoupling of persistent layer with lazy loading bi-directional linkobjects}
+\author{Robbert Gurdeep Singh}
+\date{DRAFT}
+
+%Sections
+\renewcommand\thepart{\arabic{part}}
+%\counterwithin{section}{part}
+\counterwithin{table}{section}
+\counterwithin{figure}{part}
+
+
+\begin{document}
+\twocolumn[\begin{@twocolumnfalse}
+    \maketitle
+
+    \begin{abstract}
+    	{\em
+    	    Een abstract komt hier zo
+    	}
+    \end{abstract}
+
+\end{@twocolumnfalse}]
+
+
+\section{Introduction}
+\label{sec:inro}
+In order to decouple the storage of information in the database from the domain layer we need to reduce code that only exists for  storage purposes.
+% section inro (end)
+
+
+\end{document}

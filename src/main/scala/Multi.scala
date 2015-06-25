@@ -1,14 +1,14 @@
 /**
- * Abstract base class of a multi.
+ * Abstract base class of a multi that represents bidirectional links
  *
- * Creates bidirectional link between elements that can be released
+ * Creates bidirectional link between elements that can be released. Events will be fired on
+ * creation of link on the multi to whom a method call was invoked
  *
- * @todo add onLink and onUnlink
- * @todo list trait ???
- * @tparam From
- * @tparam To
+ * @tparam From the type of the owner
+ * @tparam To   the type of the targets
+ * @author Robbert Gurdeep Singh (@beardhatcode)
  */
-abstract class Multi[+From, +To] {
+abstract class Multi[+From, +To] extends EventProducer[MultiEvent] with Traversable[To]{
   /**
    * Get all elments that are linked
    * @tparam T Type of the set to return
@@ -24,7 +24,7 @@ abstract class Multi[+From, +To] {
   def owner[F >: From]:F
 
   /**
-   * Make a bi directional link with this element
+   * Make a bidirectional link with this element. That is add and element
    * Note: Type will be checked @Runtime !
    * @param other the other element
    */
@@ -85,6 +85,8 @@ abstract class Multi[+From, +To] {
       case _ => false
     }
   }
+
+  override def foreach[U](f: (To) => U): Unit = getOthers().foreach(f)
 }
 
 /**
@@ -95,43 +97,43 @@ object Multi{
    * Make a multi. That creates bi directional links by using getMulti to fetch
    * the other multi.
    *
-   * @param owner     the owner off the multi
+   * @param _owner     the owner off the multi
    * @param getMulti  a function that get's the multi of the other side
    * @tparam From     Type of owner
    * @tparam To       Type of targets
    * @return  a new multi
    */
-  def make[From,To](owner:From,getMulti:To=>Multi[To,From]):Multi[From,To] = {
+  def make[From,To](_owner:From,getMulti:To=>Multi[To,From]):Multi[From,To] = {
     var others:Set[Multi[To,From]] = Set();
 
     new Multi[From,To] {
 
       override def getOthers[T >: To](): Set[T] = others.map(_.owner)
 
-      override def owner[F >: From]: F = owner.asInstanceOf[F]
+      override def owner[F >: From]: F = _owner.asInstanceOf[F]
 
       override def ++(other: Any): Unit = {
-        require(other.isInstanceOf[To])
-        val multi: Multi[To,From] = getMulti(other.asInstanceOf[To])
+        val otherElement: To = other.asInstanceOf[To]
+        val multi: Multi[To,From] = getMulti(otherElement)
         others = others + multi
         multi.addToOthers(this.owner)
+        sendEvent(new MultiAdditionEvent[From,To](this,otherElement))
       }
 
       override protected def addToOthers[T >: Multi[To, From]](other: T): Unit = {
-        require(other.isInstanceOf[To])
         val multi: Multi[To,From] = getMulti(other.asInstanceOf[To])
         others = others + multi
       }
 
       override def --(other: Any): Unit = {
-        require(other.isInstanceOf[To])
-        val multi: Multi[To, From] = getMulti(other.asInstanceOf[To])
+        val otherElement: To = other.asInstanceOf[To]
+        val multi: Multi[To, From] = getMulti(otherElement)
         others = others - multi
         multi.removeFromOthers(this.owner)
+        sendEvent(new MultiRemovalEvent[From,To](this,otherElement))
       }
 
       override protected def removeFromOthers[T >: Multi[To, From]](other: T): Unit = {
-        require(other.isInstanceOf[To])
         val multi: Multi[To, From] = getMulti(other.asInstanceOf[To])
         others = others - multi
       }
@@ -159,7 +161,7 @@ object Multi{
 
           override def --(other: Any): Unit = realMulti.--(other)
 
-          override def owner[F >: NewFrom]: F = owner.asInstanceOf[F]
+          override def owner[F >: NewFrom]: F = _owner.asInstanceOf[F]
 
           override protected def addToOthers[T >: Multi[NewTo, NewFrom]](other: T): Unit = realMulti.addToOthers(other)
 
